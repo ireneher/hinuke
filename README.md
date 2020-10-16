@@ -1,2 +1,2 @@
 # hinuke
-Nuke tools
+Tools for the Foundry's Nuke
