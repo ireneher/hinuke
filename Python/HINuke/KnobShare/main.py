@@ -18,6 +18,7 @@ class Sharer(nukescripts.PythonPanel):
         for n in nuke.allNodes(recurseGroups=True):
             if n.Class() == self.type and n.name() != self.node.name():
                 nodeNameKnob = nuke.Boolean_Knob(n.name(), n.name(), 1.0)
+                nodeNameKnob.setFlag(0x1000)  # New line
                 self.nodeKnobs.append(nodeNameKnob)
                 self.allKnobs.append(nodeNameKnob)
 
