@@ -70,12 +70,14 @@ class Sharer(nukescripts.PythonPanel):
             self.__buildUI()
 
         elif knob == self.button:
-            nodeNames = [n.name() for n in self.nodeKnobs if n.getValue() == 1.0]
-            for node in nuke.allNodes(recurseGroups=True):
-                if node.Class() == self.type and node.name() in nodeNames:
-                    node[self.value.name()].fromScript(self.value.toScript())
-            nuke.message("Done")
-            self.ok()
+            self.share()
+
+    def share(self):
+        nodeNames = [n.name() for n in self.nodeKnobs if n.getValue() == 1.0]
+        for node in nuke.allNodes(recurseGroups=True):
+            if node.Class() == self.type and node.name() in nodeNames:
+                node[self.value.name()].fromScript(self.value.toScript())
+        nuke.message("Done")
 
 
 def launch(node):
