@@ -22,11 +22,14 @@ class RenamingDialog(QtWidgets.QDialog):
         self.signals = signals
         self.setMinimumSize(300, 150)
         layout = QtWidgets.QVBoxLayout(self)
+
+        # Selection dropdown
         self.mode = QtWidgets.QComboBox()
         self.mode.addItems(constants.RENAMING_MODES)
         self.mode.currentIndexChanged.connect(self._onCurrentIndexChanged)
         layout.addWidget(self.mode)
 
+        # Input fields (conditional visibility)
         dynamicLayout = QtWidgets.QGridLayout()
         self.nameEdit = QtWidgets.QLineEdit()
         dynamicLayout.addWidget(self.nameEdit)
@@ -42,6 +45,7 @@ class RenamingDialog(QtWidgets.QDialog):
         self.showRename()
         layout.addLayout(dynamicLayout)
 
+        # Button to execute action
         self.button = QtWidgets.QPushButton("OK")
         self.button.clicked.connect(self._onButtonClicked)
         layout.addWidget(self.button)
@@ -143,8 +147,8 @@ class NodeList(QtWidgets.QListWidget):
     def onRightClick(self, pos):
         """
         Custom menu with options:
-            - Disable selected
-            - Pin selected
+            - Disable/Enable selected
+            - Pin/Unpin selected
             - Rename selected
         """
         menu = QtWidgets.QMenu()
@@ -155,10 +159,12 @@ class NodeList(QtWidgets.QListWidget):
             menu.addMenu(enableMenu)
             disableAction = enableMenu.addAction("Disable selected")
             enableAction = enableMenu.addAction("Enable selected")
+
             pinMenu = QtWidgets.QMenu("Pin/Unpin")
             menu.addMenu(pinMenu)
             pinAction = pinMenu.addAction("Pin selected")
             unpinAction = pinMenu.addAction("Unpin selected")
+
             renameAction = menu.addAction("Rename selected")
 
             disableAction.triggered.connect(self.disableSelected)
@@ -205,6 +211,7 @@ class NodeList(QtWidgets.QListWidget):
             super(NodeList, self).keyPressEvent(event)
 
     def _mapNumKeyPress(self):
+        # Map key to viewer number
         mapping = {}
         for number in range(0, 9):
             mapping[getattr(QtCore.Qt, "Key_{}".format(number+1))] = number
@@ -221,6 +228,7 @@ class NodeWidget(QtWidgets.QWidget):
         self.signals = signals
         self.node = node
         self.name = node.fullName()
+
         # Label and status icon
         hlayout = QtWidgets.QHBoxLayout()
         self.label = QtWidgets.QLabel(self.name)
@@ -245,6 +253,7 @@ class NodeWidget(QtWidgets.QWidget):
         self.pinIcon = QtGui.QIcon(constants.PIN_ICON)
         self.unpinIcon = QtGui.QIcon(constants.UNPIN_ICON)
         self.frameIcon = QtGui.QIcon(constants.FRAME_ICON)
+
         # Buttons
         self.pinButton = QtWidgets.QPushButton()
         self.pinButton.setToolTip("Pin node")
@@ -252,11 +261,13 @@ class NodeWidget(QtWidgets.QWidget):
         self.frameButton = QtWidgets.QPushButton()
         self.frameButton.setToolTip("Frame node in nodegraph")
         self.frameButton.setIcon(self.frameIcon)
+
         # Make layout
         layout.addWidget(self.pinButton)
         layout.addWidget(layoutRestrictorWidget)
         layout.addWidget(self.frameButton)
         layout.setSizeConstraint(QtWidgets.QLayout.SetMinAndMaxSize)
+        
         # Signals
         self.pinButton.clicked.connect(self._onPin)
         self.frameButton.clicked.connect(self._onFrame)
