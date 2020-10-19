@@ -107,6 +107,90 @@ class RenamingDialog(QtWidgets.QDialog):
             node.setName(newName)
 
 
+class NodeWidget(QtWidgets.QWidget):
+    def __init__(self, node, isPinned=False, isEnabled=True, signals=None):
+        super(NodeWidget, self).__init__()
+        layout = QtWidgets.QHBoxLayout(self)
+        self.isPinned = isPinned
+        self.isEnabled = isEnabled
+        self.signals = signals
+        self.node = node
+        self.name = node.fullName()
+
+        # Label and status icon
+        hlayout = QtWidgets.QHBoxLayout()
+        self.label = QtWidgets.QLabel(self.name)
+        font = self.font()
+        font.setPointSize(15)
+        font.setBold(True)
+        self.label.setFont(font)
+        self.label.setAlignment(QtCore.Qt.AlignCenter)
+        hlayout.addWidget(self.label, 90)
+        self.status = QtWidgets.QLabel()
+        self.disabledPixmap = QtGui.QPixmap(10, 10)
+        self.disabledPixmap.fill(QtGui.QColor.fromRgb(*constants.DISABLED_COLOUR))
+        self.enabledPixmap = QtGui.QPixmap(10, 10)
+        self.enabledPixmap.fill(QtGui.QColor.fromRgb(*constants.ENABLED_COLOUR))
+        self.setStatusPixmap()
+        hlayout.addWidget(self.status, 10)
+        layoutRestrictorWidget = QtWidgets.QWidget()
+        layoutRestrictorWidget.setLayout(hlayout)
+        layoutRestrictorWidget.setMinimumWidth(435)
+
+        # Icons
+        self.pinIcon = QtGui.QIcon(constants.PIN_ICON)
+        self.unpinIcon = QtGui.QIcon(constants.UNPIN_ICON)
+        self.frameIcon = QtGui.QIcon(constants.FRAME_ICON)
+
+        # Buttons
+        self.pinButton = QtWidgets.QPushButton()
+        self.pinButton.setToolTip("Pin node")
+        self.pinButton.setIcon(self._getPinIcon())
+        self.frameButton = QtWidgets.QPushButton()
+        self.frameButton.setToolTip("Frame node in nodegraph")
+        self.frameButton.setIcon(self.frameIcon)
+
+        # Make layout
+        layout.addWidget(self.pinButton)
+        layout.addWidget(layoutRestrictorWidget)
+        layout.addWidget(self.frameButton)
+        layout.setSizeConstraint(QtWidgets.QLayout.SetMinAndMaxSize)
+
+        # Signals
+        self.pinButton.clicked.connect(self._onPin)
+        self.frameButton.clicked.connect(self._onFrame)
+
+    def _getPinIcon(self):
+        return self.pinIcon if self.isPinned else self.unpinIcon
+
+    def _onPin(self):
+        self.togglePin()
+
+    def _onFrame(self):
+        # If node is inside of group, frame to its root parent
+        node = nuke.toNode(self.name.split(".")[0]) if "." in self.name else self.node
+        nuke.zoom(2, [node.xpos(), node.ypos()])
+
+    def togglePin(self):
+        self.setPin(not self.isPinned)
+
+    def setPin(self, isPinned):
+        self.isPinned = isPinned
+        self.pinButton.setIcon(self._getPinIcon())
+        if self.signals:
+            self.signals.pinToggled.emit(self.node, self.isPinned)
+
+    def setStatusPixmap(self):
+        pixmap = self.enabledPixmap if self.isEnabled else self.disabledPixmap
+        self.status.setPixmap(pixmap)
+
+    def setStatus(self, isEnabled):
+        self.isEnabled = isEnabled
+        if self.node.knob("disable"):
+            self.node.knob("disable").setValue(not self.isEnabled)
+        self.setStatusPixmap()
+
+
 class NodeList(QtWidgets.QListWidget):
     def __init__(self, signals=None):
         super(NodeList, self).__init__()
@@ -142,7 +226,8 @@ class NodeList(QtWidgets.QListWidget):
         for idx in range(self.count() - 1):
             item = self.item(idx)
             node = self._getNodeFromItem(item)
-            node.setSelected(item.isSelected())
+            if node:
+                node.setSelected(item.isSelected())
 
     def onRightClick(self, pos):
         """
@@ -217,88 +302,3 @@ class NodeList(QtWidgets.QListWidget):
             mapping[getattr(QtCore.Qt, "Key_{}".format(number+1))] = number
 
         return mapping
-
-
-class NodeWidget(QtWidgets.QWidget):
-    def __init__(self, node, isPinned=False, isEnabled=True, signals=None):
-        super(NodeWidget, self).__init__()
-        layout = QtWidgets.QHBoxLayout(self)
-        self.isPinned = isPinned
-        self.isEnabled = isEnabled
-        self.signals = signals
-        self.node = node
-        self.name = node.fullName()
-
-        # Label and status icon
-        hlayout = QtWidgets.QHBoxLayout()
-        self.label = QtWidgets.QLabel(self.name)
-        font = self.font()
-        font.setPointSize(15)
-        font.setBold(True)
-        self.label.setFont(font)
-        self.label.setAlignment(QtCore.Qt.AlignCenter)
-        hlayout.addWidget(self.label, 90)
-        self.status = QtWidgets.QLabel()
-        self.disabledPixmap = QtGui.QPixmap(10, 10)
-        self.disabledPixmap.fill(QtGui.QColor.fromRgb(*constants.DISABLED_COLOUR))
-        self.enabledPixmap = QtGui.QPixmap(10, 10)
-        self.enabledPixmap.fill(QtGui.QColor.fromRgb(*constants.ENABLED_COLOUR))
-        self.setStatusPixmap()
-        hlayout.addWidget(self.status, 10)
-        layoutRestrictorWidget = QtWidgets.QWidget()
-        layoutRestrictorWidget.setLayout(hlayout)
-        layoutRestrictorWidget.setMinimumWidth(435)
-
-        # Icons
-        self.pinIcon = QtGui.QIcon(constants.PIN_ICON)
-        self.unpinIcon = QtGui.QIcon(constants.UNPIN_ICON)
-        self.frameIcon = QtGui.QIcon(constants.FRAME_ICON)
-
-        # Buttons
-        self.pinButton = QtWidgets.QPushButton()
-        self.pinButton.setToolTip("Pin node")
-        self.pinButton.setIcon(self._getPinIcon())
-        self.frameButton = QtWidgets.QPushButton()
-        self.frameButton.setToolTip("Frame node in nodegraph")
-        self.frameButton.setIcon(self.frameIcon)
-
-        # Make layout
-        layout.addWidget(self.pinButton)
-        layout.addWidget(layoutRestrictorWidget)
-        layout.addWidget(self.frameButton)
-        layout.setSizeConstraint(QtWidgets.QLayout.SetMinAndMaxSize)
-        
-        # Signals
-        self.pinButton.clicked.connect(self._onPin)
-        self.frameButton.clicked.connect(self._onFrame)
-
-    def _getPinIcon(self):
-        return self.pinIcon if self.isPinned else self.unpinIcon
-
-    def _onPin(self):
-        self.togglePin()
-
-    def _onFrame(self):
-        # If node is inside of group, frame to its root parent
-        node = nuke.toNode(self.name.split(".")[0]) if "." in self.name else self.node
-        nuke.zoom(2, [node.xpos(), node.ypos()])
-
-    def togglePin(self):
-        self.setPin(not self.isPinned)
-
-    def setPin(self, isPinned):
-        self.isPinned = isPinned
-        self.pinButton.setIcon(self._getPinIcon())
-        if self.signals:
-            self.signals.pinToggled.emit(self.node, self.isPinned)
-
-    def setStatusPixmap(self):
-        pixmap = self.enabledPixmap if self.isEnabled else self.disabledPixmap
-        self.status.setPixmap(pixmap)
-
-    def setStatus(self, isEnabled):
-        self.isEnabled = isEnabled
-        if self.node.knob("disable"):
-            self.node.knob("disable").setValue(not self.isEnabled)
-        self.setStatusPixmap()
-

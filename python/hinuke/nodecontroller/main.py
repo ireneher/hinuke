@@ -50,7 +50,7 @@ class NodeController(QtWidgets.QDialog):
             if node not in self.pinned:
                 self.nodeList.addNode(node)
 
-    def _processInput(self):
+    def _processInput(self, *args):
         mode = str(self.mode.currentText())
         userInput = str(self.input.text())
         collectedNodes = []
