@@ -33,6 +33,7 @@ class NodeController(QtWidgets.QDialog):
 
         self.nodeList = ui.NodeList(signals=self.signals)
         self.signals.nameChanged.connect(self._processInput)
+        self.signals.statusChanged.connect(self._processInput)
 
         vLayout = QtWidgets.QVBoxLayout(self)
         vLayout.addLayout(hLayout)

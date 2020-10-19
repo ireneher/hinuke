@@ -9,6 +9,7 @@ import constants
 class Signals(QtCore.QObject):
     pinToggled = QtCore.Signal(object, object)
     nameChanged = QtCore.Signal()
+    statusChanged = QtCore.Signal()
 
     def __init__(self, parent=None):
         super(Signals, self).__init__(parent)
@@ -182,6 +183,8 @@ class NodeList(QtWidgets.QListWidget):
     def _setStatusSelected(self, isEnabled):
         for item in self.selectedItems():
             self.itemWidget(item).setStatus(isEnabled)
+        if self.signals:
+            self.signals.statusChanged.emit()
 
     def pinSelected(self):
         self._setPinSelected(True)
@@ -287,3 +290,4 @@ class NodeWidget(QtWidgets.QWidget):
         if self.node.knob("disable"):
             self.node.knob("disable").setValue(not self.isEnabled)
         self.setStatusPixmap()
+
