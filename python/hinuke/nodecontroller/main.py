@@ -2,113 +2,15 @@ import nuke
 from PySide2 import QtWidgets, QtCore, QtGui
 
 import constants
+import ui
 from hinuke import utils
-
-
-class Signals(QtCore.QObject):
-    pinToggled = QtCore.Signal(object, object)
-
-    def __init__(self, parent=None):
-        super(Signals, self).__init__(parent)
-
-
-class NodeList(QtWidgets.QListWidget):
-    def __init__(self, signals=None):
-        super(NodeList, self).__init__()
-        self.signals = signals
-        self.itemDoubleClicked.connect(self._onItemDoubleClicked)
-        self.itemSelectionChanged.connect(self._onSelectionChanged)
-        self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.numKeyMapping = self._mapNumKeyPress()
-
-    def addNode(self, node, isPinned=False):
-        nodeWidget = NodeWidget(node, isPinned=isPinned, signals=self.signals)
-        nodeItem = QtWidgets.QListWidgetItem()
-        nodeItem.setTextAlignment(QtCore.Qt.AlignHCenter)
-        nodeItem.setSizeHint(nodeWidget.sizeHint())
-        self.addItem(nodeItem)
-        self.setItemWidget(nodeItem, nodeWidget)
-
-    def _getNodeFromItem(self, item):
-        return self.itemWidget(item).node
-
-    def toggleNodeState(self, node):
-        node['disable'].setValue(not node['disable'].value())
-
-    def _onItemDoubleClicked(self, item):
-        node = self._getNodeFromItem(item)
-        node.showControlPanel()
-
-    def _onSelectionChanged(self):
-        for idx in range(self.count() - 1):
-            item = self.item(idx)
-            node = self._getNodeFromItem(item)
-            node.setSelected(item.isSelected())
-
-    def keyPressEvent(self, event):
-        if event.key() in self.numKeyMapping.keys():
-            if self.currentItem():
-                node = self._getNodeFromItem(self.currentItem())
-                nuke.connectViewer(self.numKeyMapping[event.key()], node)
-        else:
-            super(NodeList, self).keyPressEvent(event)
-
-    def _mapNumKeyPress(self):
-        mapping = {}
-        for number in range(0, 9):
-            mapping[getattr(QtCore.Qt, "Key_{}".format(number+1))] = number
-
-        return mapping
-
-
-class NodeWidget(QtWidgets.QWidget):
-    def __init__(self, node, isPinned=False, signals=None):
-        super(NodeWidget, self).__init__()
-        layout = QtWidgets.QHBoxLayout(self)
-        self.isPinned = isPinned
-        self.signals = signals
-        self.node = node
-        self.label = QtWidgets.QLabel(node.name())
-        self.label.setMinimumWidth(435)
-        self.label.setAlignment(QtCore.Qt.AlignCenter)
-        # Icons
-        self.pinIcon = QtGui.QIcon(constants.PIN_ICON)
-        self.unpinIcon = QtGui.QIcon(constants.UNPIN_ICON)
-        self.frameIcon = QtGui.QIcon(constants.FRAME_ICON)
-        # Buttons
-        self.pinButton = QtWidgets.QPushButton()
-        self.pinButton.setToolTip("Pin node")
-        self.pinButton.setIcon(self._getPinIcon())
-        self.frameButton = QtWidgets.QPushButton()
-        self.frameButton.setToolTip("Frame node in nodegraph")
-        self.frameButton.setIcon(self.frameIcon)
-        # Make layout
-        layout.addWidget(self.pinButton)
-        layout.addWidget(self.label)
-        layout.addWidget(self.frameButton)
-        layout.setSizeConstraint(QtWidgets.QLayout.SetMinAndMaxSize)
-        # Signals
-        self.pinButton.clicked.connect(self._onPin)
-        self.frameButton.clicked.connect(self._onFrame)
-
-    def _getPinIcon(self):
-        return self.pinIcon if self.isPinned else self.unpinIcon
-
-    def _onPin(self):
-        self.isPinned = not self.isPinned
-        self.pinButton.setIcon(self._getPinIcon())
-        if self.signals:
-            self.signals.pinToggled.emit(self.node, self.isPinned)
-
-    def _onFrame(self):
-        nuke.zoom(2, [self.node.xpos(), self.node.ypos()])
 
 
 class NodeController(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(NodeController, self).__init__(parent=parent)
 
-        self.signals = Signals()
+        self.signals = ui.Signals()
         self.pinned = []
         self.signals.pinToggled.connect(self._onItemPinToggled)
 
@@ -129,7 +31,8 @@ class NodeController(QtWidgets.QDialog):
         self.button.clicked.connect(self._processInput)
         hLayout.addWidget(self.button)
 
-        self.nodeList = NodeList(signals=self.signals)
+        self.nodeList = ui.NodeList(signals=self.signals)
+        self.signals.nameChanged.connect(self._processInput)
 
         vLayout = QtWidgets.QVBoxLayout(self)
         vLayout.addLayout(hLayout)
@@ -160,6 +63,8 @@ class NodeController(QtWidgets.QDialog):
         if self.checkboxEnable.isChecked():
             collectedNodes = [
                 node for node in collectedNodes if node.knob("disable") and not node.knob("disable").value()
+                                                   or not node.knob("disable")  # To account for nodes that do not have
+                                                                                # a disable knob like the Viewer
             ]
 
         self._populateUI(collectedNodes)
