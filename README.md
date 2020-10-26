@@ -9,7 +9,7 @@ This method works per session. If desired, modify ~/.bashrc to permanently appen
 
 ## Tools ##
 ### Node Controller ###
-Custom panel that acts as a global Nodegraph manager.
+Custom panel that acts as a global Nodegraph manager. Core idea inspired by [Julius Ihle's Katana Interactive RenderPanel](http://julius-ihle.de/?p=2554).
 Features:
 * **Query** and retrieve (by Name, Type, or Selection) with the option to filter out disabled nodes.
 * **View** selected node, via number key.
