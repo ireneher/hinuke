@@ -1,5 +1,6 @@
 import nuke
 import nukescripts
+from PySide2 import QtCore
 
 
 class Sharer(nukescripts.PythonPanel):
@@ -25,7 +26,7 @@ class Sharer(nukescripts.PythonPanel):
         # Divider II
         self.secondDivider = nuke.Text_Knob("divider2", "", "")
         # Knobs dropdown
-        self.knobs = nuke.Enumeration_Knob("knobs", "Knob", knobNamesFromNode)
+        self.knobsDropdown = nuke.Enumeration_Knob("knobs", "Knob", knobNamesFromNode)
         # Value of selected knob
         self.value = self.__cloneKnob(knobNamesFromNode[0])
         self.value.setFlag(0x1000)  # New line
@@ -38,7 +39,7 @@ class Sharer(nukescripts.PythonPanel):
         self.button.setFlag(0x1000)  # New line
 
         self.allKnobs.extend([self.secondDivider,
-                              self.knobs,
+                              self.knobsDropdown,
                               self.value,
                               self.thirdDivider,
                               self.button])
@@ -47,7 +48,11 @@ class Sharer(nukescripts.PythonPanel):
 
     def __buildUI(self):
         for knob in self.allKnobs:
+            if knob in self.knobs():
+                self.removeKnob(knob)
             self.addKnob(knob)
+
+        QtCore.QCoreApplication.processEvents()
 
     def __cloneKnob(self, knobName):
         ogKnob = self.node.knob(knobName)
@@ -58,15 +63,14 @@ class Sharer(nukescripts.PythonPanel):
         return newKnob
 
     def knobChanged(self, knob):
-        if knob == self.knobs:
-            self.value = self.__cloneKnob(self.knobs.value())
+        if knob == self.knobsDropdown:
+            self.value = self.__cloneKnob(self.knobsDropdown.value())
             self.value.setFlag(0x1000)  # New line
             self.value.setFlag(0x00000080)  # Disabled
             for uiKnob in self.allKnobs:
                 self.removeKnob(uiKnob)
 
             self.allKnobs[-3] = self.value
-
             self.__buildUI()
 
         elif knob == self.button:
