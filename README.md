@@ -20,9 +20,9 @@ Features:
 * **Rename** nodes in panel selection (two modes: replace or absolute).
 
 ### Knob Share ###
-Properties menu tool to edit knobs in batch. Value is propagated from current node to others of the same type, according to user selection.
+Properties menu tool to edit knobs in batch. The value is propagated from the current node to others of the same type, according to user selection.
 
-Here is a very simple example where the colour knob is shared from _Constant1_ to all other _Constant_ nodes except _Constant4_.
+Here is a very simple example where the _colour_ knob is shared from _Constant1_ to all other _Constant_ nodes except _Constant4_.
 
 ![HIKnobShare gif](doc/images/knobshare/example.gif)
 
