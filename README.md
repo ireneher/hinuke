@@ -23,8 +23,8 @@ Features:
 * **Rename** nodes in panel selection (two modes: replace or absolute).
 
 ![HIKnobShare sample gif](doc/images/nodecontroller/example.gif)
-![HIKnobShare frame gif](doc/images/nodecontroller/frame.gif)
 ![HIKnobShare viewer gif](doc/images/nodecontroller/view.gif)
+![HIKnobShare frame gif](doc/images/nodecontroller/frame.gif)
 
 ### Knob Share ###
 Properties menu tool to edit knobs in batch. The value is propagated from the current node to others of the same type, according to user selection.
