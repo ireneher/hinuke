@@ -11,6 +11,8 @@ This method works per session. If desired, modify ~/.bashrc to permanently appen
 ### Node Controller ###
 Custom panel that acts as a global Nodegraph manager. Core idea inspired by [Julius Ihle's Katana Interactive RenderPanel](http://julius-ihle.de/?p=2554).
 
+![HIKnobShare UI](doc/images/nodecontroller/ui.png)
+
 Features:
 * **Query** and retrieve (by Name, Type, or Selection) with the option to filter out disabled nodes.
 * **View** selected node, via number key.
@@ -19,6 +21,10 @@ Features:
 * **Pin**/Unpin selected in current list, to curate panel.
 * **Disable**/Enable panel selection in nodegraph.
 * **Rename** nodes in panel selection (two modes: replace or absolute).
+
+![HIKnobShare sample gif](doc/images/nodecontroller/example.gif)
+![HIKnobShare frame gif](doc/images/nodecontroller/frame.gif)
+![HIKnobShare viewer gif](doc/images/nodecontroller/view.gif)
 
 ### Knob Share ###
 Properties menu tool to edit knobs in batch. The value is propagated from the current node to others of the same type, according to user selection.
